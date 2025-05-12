@@ -1,0 +1,19 @@
+# Configuration settings for Snakemake
+
+# Relative path where your samples are found
+samples: /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/2025-04-16_EXAMPLE_CURING_EXP/sample_sheet.csv
+
+# Path to your raw sequencing reads  
+short_reads: /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/illumina_reads
+
+# Path to long read assemblies
+assembly: /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/ONT_assemblies 
+
+# Directory prefix where the outputs will be saved to
+# Rename this to your preferred naming convention with this format:year-month-day_Project_Name_QCD
+prefix: 2025-05-12_Test_Strain_Validation_Pipeline
+
+# Specify number of cores you want to use for variant calling
+cores: 10
+
+# Feel free to remove the comments after you have customized the file.
