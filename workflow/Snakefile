@@ -65,6 +65,7 @@ rule run_dotplot:
         query=lambda wildcards: wildcards.ont_assembly_name
     envmodules:
        "Bioinformatics",
+       "python/3.13.2",
        "mummer/4.0.0rc1",
        "R/4.4.0"
     shell:
