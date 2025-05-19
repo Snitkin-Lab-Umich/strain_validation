@@ -66,7 +66,7 @@ cd strain_validation
 
 ```
 
-module load Bioinformatics snakemake singularity R
+module load Bioinformatics snakemake singularity mummer/4.0.0rc1 R
 
 ```
 
