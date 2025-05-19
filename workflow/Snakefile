@@ -99,7 +99,8 @@ rule run_snippy:
                --outdir {params.outdir} \
                --ref {input.ref} \
                --R1 {input.r1} \
-               --R2 {input.r2} 
+               --R2 {input.r2} \
+               --force
         """
 
 rule organize_dotplot_dir:
