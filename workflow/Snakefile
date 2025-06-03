@@ -9,136 +9,24 @@ import shutil, glob
 # Load configuration
 samples_df = pd.read_csv(config["samples"])
 PREFIX = config["prefix"]
+ASSEMBLY_DIR = config["assembly"]
+SHORT_READS_DIR = config["short_reads"]
 
-# Extract query and reference genome info for dotplot generation
-dotplot_info = [
-    (os.path.splitext(row["ONT_assembly"])[0], 
-    row["ONT_assembly"], 
-    row["Reference_genome_path"])
-    for _, row in samples_df.iterrows()
-]
+SAMPLE = list(samples_df["Sample_name"])
 
-# Extract paired ends reads and reference genome info to run variant calling
-snippy_samples = [
-    (
-        row["Illumina_F"].replace("_R1.fastq.gz", ""),
-        row["Illumina_F"],
-        row["Illumina_R"],
-        row["Reference_genome_path"]
-    )
-    for _, row in samples_df.iterrows()
-]
+sample_ref_genome_dict = dict(zip(samples_df["Sample_name"], samples_df["Reference_genome_path"]))
+
+if not os.path.exists("results/" + PREFIX):
+    os.makedirs("results/" + PREFIX, exist_ok=True)
 
 rule all:
     input:
-        expand("results/{prefix}/snippy/{sample}/{sample}.vcf", prefix=PREFIX, sample=[row[0] for row in snippy_samples]),
-        expand("results/{prefix}/dotplots_dir_moved.txt", prefix=PREFIX)
-        # expand("results/{prefix}/dotplots/{ont_assembly_name}/contig_data/{ont_assembly}_contig_data.csv", prefix=PREFIX, ont_assembly_name=[row[0] for row in dotplot_info], ont_assembly=[row[1] for row in dotplot_info]),
-        # expand("results/{prefix}/cauris_dotplot_repo/{ont_assembly_name}/contig_data/{ont_assembly}_contig_data.csv",prefix=PREFIX, ont_assembly_name=[row[0] for row in dotplot_info], ont_assembly=[row[1] for row in dotplot_info]),
+        expand("results/{prefix}/final_results/{sample}.csv",prefix=PREFIX, sample=SAMPLE),
+        # expand("results/{prefix}/snippy/{sample}/{sample}.csv", prefix=PREFIX, sample=SAMPLE),
+        # expand("results/{prefix}/cauris_dotplot_repo/{sample}/plots/{sample}.pdf",prefix=PREFIX, sample=SAMPLE),
         # expand("results/{prefix}/cauris_dotplot_repo/dotplot.py", prefix=PREFIX)
 
-# Install cauris_dotplot GitHub repo
-rule install_cauris_dotplot:
-    output:
-        "results/{prefix}/cauris_dotplot_repo/dotplot.py",
-        # temp("results/{prefix}/cauris_dotplot_repo/")
-    params:
-        dotplot_github_outdir = "results/{prefix}/cauris_dotplot_repo"
-    shell:
-        """
-        git clone https://github.com/Snitkin-Lab-Umich/cauris_dotplot.git {params.dotplot_github_outdir}
-        """
-
-# Run dotplot for each query
-rule run_dotplot:
-    input:
-        query_path=lambda wildcards: os.path.join(config["assembly"], next(p[1] for p in dotplot_info if p[0] == wildcards.ont_assembly_name)),
-        subject_path=lambda wildcards: next(
-            row["Reference_genome_path"]
-            for _, row in samples_df.iterrows()
-            if os.path.splitext(row["ONT_assembly"])[0] == wildcards.ont_assembly_name
-        ),
-        script="results/{prefix}/cauris_dotplot_repo/dotplot.py"
-    output:
-        "results/{prefix}/cauris_dotplot_repo/{ont_assembly_name}/contig_data/{ont_assembly}_contig_data.csv"
-    params:
-        query=lambda wildcards: wildcards.ont_assembly_name
-    envmodules:
-       "Bioinformatics",
-       "python/3.13.2",
-       "mummer/4.0.0rc1",
-       "R/4.4.0"
-    shell:
-        """
-        python {input.script} \
-            --name {params.query} \
-            --query {input.query_path} \
-            --subject {input.subject_path} 
-        """
-
-# Run variant calling (snippy) to get variant information        
-rule run_snippy:
-    input:
-        r1 = lambda wildcards: os.path.join(config["short_reads"], next(r[1] for r in snippy_samples if r[0] == wildcards.sample)),
-        r2 = lambda wildcards: os.path.join(config["short_reads"], next(r[2] for r in snippy_samples if r[0] == wildcards.sample)),
-        ref = lambda wildcards: next(r[3] for r in snippy_samples if r[0] == wildcards.sample)
-    output:
-        "results/{prefix}/snippy/{sample}/{sample}.vcf"
-    params:
-        cpus = config["cores"],
-        sample = lambda wildcards: wildcards.sample,
-        outdir = lambda wildcards: f"results/{wildcards.prefix}/snippy/{wildcards.sample}"
-    # singularity:
-    #     "docker://staphb/snippy:4.6.0_SC2"
-    envmodules:
-       "Bioinformatics",
-       "snippy"
-    shell:
-        """
-        snippy --cpus {params.cpus} \
-               --prefix {params.sample} \
-               --outdir {params.outdir} \
-               --ref {input.ref} \
-               --R1 {input.r1} \
-               --R2 {input.r2} \
-               --force
-        """
-
-rule organize_dotplot_dir:
-    input:
-        expand("results/{prefix}/cauris_dotplot_repo/{ont_assembly_name}/contig_data/{ont_assembly}_contig_data.csv", 
-               prefix=PREFIX, 
-               ont_assembly_name=[row[0] for row in dotplot_info], 
-               ont_assembly=[row[1] for row in dotplot_info])
-    output:
-        # "results/{prefix}/dotplots/{ont_assembly_name}/contig_data/{ont_assembly}_contig_data.csv"
-        "results/{prefix}/dotplots_dir_moved.txt"
-    params:
-        cauris_repo_outdir = lambda wildcards: f"results/{wildcards.prefix}/cauris_dotplot_repo",
-        dotplot_outdir = lambda wildcards: f"results/{wildcards.prefix}/dotplots"
-    run:
-        for name, assembly, _ in dotplot_info:
-            src_dir = os.path.join(params["cauris_repo_outdir"], name) 
-            dest_dir = os.path.join(params["dotplot_outdir"], name) 
-            # os.makedirs(dest_dir, exist_ok=True)
-
-            for file_path in glob.glob(os.path.join(src_dir, "*")):
-                filename = os.path.basename(file_path)
-                dest_file = os.path.join(dest_dir, filename)
-                if os.path.exists(dest_file):
-                    print(f"File {dest_file} already exists. Skipping.")
-                    continue
-                shutil.move(file_path, dest_file)
-
-
-        # Delete the repo folder only if all assemblies were processed
-        num_expected = len(dotplot_info)
-        num_dotplots = sum([os.path.exists(os.path.join(params["dotplot_outdir"], name, "contig_data", f"{assembly}_contig_data.csv")) 
-                            for name, assembly, _ in dotplot_info])
-        
-        if num_dotplots == num_expected:
-            shutil.rmtree(params["cauris_repo_outdir"])
-            with open(output[0], "w") as f:
-                f.write("Dotplots moved successfully.\n")
-        else:
-            raise ValueError("Not all dotplots were moved—repo not deleted.")
+####### rules #################
+include: "rules/dotplot.smk"
+include: "rules/snippy.smk"
+include: "rules/organize_results.smk"
