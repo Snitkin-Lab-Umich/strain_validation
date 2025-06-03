@@ -139,6 +139,8 @@ cd /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/
 python3 /scratch/esnitkin_root/esnitkin1/your_uniqname/generate_sample_sheet.py
 ```
 
+### Cluster file
+Change the walltime according to the number of samples you have in `config/cluster.json` to ensure the jobs are being submitted in a timely manner. Update `email` flag to your email.
 
 ## Quick start
 
