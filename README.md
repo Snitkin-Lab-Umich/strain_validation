@@ -3,39 +3,53 @@ Snakemake pipeline to validate mutants made in the lab
 
 ## Summary
 This pipeline performs two  steps:
-- Firstly, it creates synteny dot plots using long reads based on an in house pipeline [cauris_dotplot](https://github.com/Snitkin-Lab-Umich/cauris_dotplot) 
+- Firstly, it creates synteny dot plots using long reads based on an in house pipeline [cauris_dotplot](https://github.com/Snitkin-Lab-Umich/cauris_dotplot_pipeline) 
 - Secondly, it runs [snippy](https://github.com/tseemann/snippy), a variant calling tool, that takes paired end reads and a reference genome.
 
-The workflow generates all the output in the `prefix` folder set in  `config/config.yaml`. Each workflow steps gets its own individual folder as shown below. This structure provides a general view of how outputs are organized, with each tool or workflow step having its own directory. **Note that this overview does not capture all possible outputs from each tool; it only highlights the primary directories and _SOME_ of their contents.** 
+The workflow generates all the output in the `prefix` folder set in  `config/config.yaml`. Each workflow steps gets its own individual folder as shown below. This structure provides a general view of how outputs are organized, with each tool or workflow step having its own directory. **_Note that this overview does not capture all possible outputs from each tool; it only highlights the primary directories and _SOME_ of their contents._** 
+
+**The synteny plots and variant information can be found in the `final_results` folder.**
 
 ```
-results/
-└── 2025-05-12_Test_Strain_Validation_Pipeline
-    ├── dotplots
-    │   └── BXYRFN_3_sample_03
-    │       ├── BXYRFN_3_sample_03_debug_log.txt
-    │       ├── contig_data
-    │       │   ├── BXYRFN_3_sample_03.fna_contig_data.csv
-    │       │   └── MI_KPC_112_flye_medaka_polypolish_contig_data.csv
-    │       ├── nucmer
-    │       │   ├── BXYRFN_3_sample_03.fna_to_MI_KPC_112_flye_medaka_polypolish.coord
-    │       │   └── BXYRFN_3_sample_03.fna_to_MI_KPC_112_flye_medaka_polypolish.delta
-    │       └── plots
-    │           └── BXYRFN_3_sample_03.fna_to_MI_KPC_112_flye_medaka_polypolish.pdf
-    └── snippy
-        └── BXYRFN_3_sample_03_illumina
-            ├── BXYRFN_3_sample_03_illumina.aligned.fa
-            ├── BXYRFN_3_sample_03_illumina.bam
-            ├── BXYRFN_3_sample_03_illumina.bam.bai
-            ├── BXYRFN_3_sample_03_illumina.bed
-            ├── BXYRFN_3_sample_03_illumina.csv
-            ├── BXYRFN_3_sample_03_illumina.filt.vcf
-            ├── BXYRFN_3_sample_03_illumina.gff
-            ├── BXYRFN_3_sample_03_illumina.html
-            ├── BXYRFN_3_sample_03_illumina.log
-            ├── BXYRFN_3_sample_03_illumina.raw.vcf
-            ├── ref.fa -> reference/ref.fa
-            └── ref.fa.fai -> reference/ref.fa.fai
+results/2025-06-03_Test_Strain_Validation_Pipeline/
+├── cauris_dotplot_repo
+│   ├── dotplot.py
+│   ├── highlight_data.tsv
+│   ├── make_plots.R
+│   ├── README.md
+│   ├── run_dotplot.job
+│   └── sloop.py
+├── dotplots
+│   └── MI_KPC_112_C
+│       ├── contig_data
+│       │   ├── MI_KPC_112_C_contig_data.csv
+│       │   └── MI_KPC_112_flye_medaka_polypolish_contig_data.csv
+│       ├── MI_KPC_112_C_debug_log.txt
+│       ├── nucmer
+│       │   ├── MI_KPC_112_C.coord
+│       │   └── MI_KPC_112_C.delta
+│       └── plots
+├── final_results
+│   ├── MI_KPC_112_C.csv
+│   └── MI_KPC_112_C.pdf
+└── snippy
+    └── MI_KPC_112_C
+        ├── MI_KPC_112_C.aligned.fa
+        ├── MI_KPC_112_C.bam
+        ├── MI_KPC_112_C.filt.vcf
+        ├── MI_KPC_112_C.gff
+        ├── MI_KPC_112_C.html
+        ├── MI_KPC_112_C.log
+        ├── MI_KPC_112_C.raw.vcf
+        ├── MI_KPC_112_C.subs.vcf
+        ├── MI_KPC_112_C.tab
+        ├── MI_KPC_112_C.txt
+        ├── MI_KPC_112_C.vcf
+        ├── MI_KPC_112_C.vcf.gz
+        ├── MI_KPC_112_C.vcf.gz.csi
+        ├── reference
+        ├── ref.fa -> reference/ref.fa
+        └── ref.fa.fai -> reference/ref.fa.fai
 ```
 
 ## Installation
@@ -66,7 +80,7 @@ cd strain_validation
 
 ```
 
-module load Bioinformatics snakemake singularity mummer/4.0.0rc1 R
+module load Bioinformatics snakemake singularity R
 
 ```
 
@@ -105,9 +119,25 @@ Quit the R session `q()` after successful installation of `ggplot2` and move ont
 As an input, the snakemake file takes a config file where you can set the path to `sample_sheet.csv`, path to ONT long reads and illumina short reads, etc. Instructions on how to modify `config/config.yaml` is found in `config.yaml`. 
 
 ### Samples
-This sample file should contain 6 columns: `Reference_genome`, `Reference_genome_path`, `Sample_name`,  `Illumina_F`, `Illumina_R` and `ONT_assembly`. An example of how the `sample_sheet.csv` should look like can be found here `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/2025-04-16_EXAMPLE_CURING_EXP/sample_sheet.csv`.
+This sample file should contain 6 columns: `Reference_genome`, `Reference_genome_path`, `Sample_name`,  `Illumina_F`, `Illumina_R` and `ONT_assembly`. An example of how the `sample_sheet.csv` should look like can be found here `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/2025-04-16_EXAMPLE_CURING_EXP/sample_sheet.csv`. 
 
-The reference genome column should contain the name of the reference genome, the reference_genome_path should contain the path to the reference genome which can be found here `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/MDHHS_hybrid_genome_assembly_paths.txt`. The Sample_name should be the name of the reference genome with a suffix `_C`. `Illumina_F` and `Illumina_R` are the names of the paired end reads with the suffix `_R1/R2.fastq.gz`. ONT_assembly is the name of the long read. 
+To create the `sample_sheet.csv`, you need to run `generate_sample_sheet.py`.
+
+Couple of assumption before you run the aforementioned python script.
+- If you run `generate_sample_sheet.py` in a `--dryrun` mode, you should be able to see which files are being moved, where it is being moved and if there are any missing sequencing data.
+- You will be running `generate_sample_sheet.py` from the `Plasmid_curing` directory i.e. here `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/`
+- `sample_sheet.csv` will be created in the `Plasmid_curing` directory. 
+- `ONT_assemblies/` and `illumina_reads/` already exist here `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/`
+- `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/Plasmidsaurus_data/` contains all ONT & Illumina data (`*_results`, `*_Illumina_fastq` where `*` is **plasmidsaurus BATCH NAME**).
+- File names `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/Plasmidsaurus_data/2025-05-20_curing_batch_1_sample_lookup.csv` and `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/MDHHS_hybrid_genome_assembly_paths.txt` are not altered—otherwise, the script will break.
+
+Once you have read the above expectations, copy paste the command below on your terminal to create `sample_sheet.csv`. Replace `your_uniqname` with your uniqname.
+
+```
+cd /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/
+
+python3 /scratch/esnitkin_root/esnitkin1/your_uniqname/generate_sample_sheet.py
+```
 
 
 ## Quick start
