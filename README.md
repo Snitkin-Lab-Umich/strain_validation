@@ -75,6 +75,12 @@ git clone https://github.com/Snitkin-Lab-Umich/strain_validation.git
 cd strain_validation
 
 ```
+> To ensure a clean starting environment, deactivate and/or remove any modules/packages loaded.
+
+```
+module purge
+conda deactivate
+```
 
 > Load bioinformatics, snakemake, singularity and R modules from Great Lakes modules.
 
