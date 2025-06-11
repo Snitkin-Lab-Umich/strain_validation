@@ -51,7 +51,7 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
             if dryrun:
                 tqdm.write(f"[DRYRUN] Would move {fna_file} -> {dest_path}")
             else:
-                shutil.move(fna_file, dest_path)
+                shutil.copy(fna_file, dest_path)
         else:
             tqdm.write(f"⚠️ File already exists: {dest_path}")
     else:
@@ -73,8 +73,8 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
             tqdm.write(f"[DRYRUN] Would move {r1_file} -> {dest_r1}")
             tqdm.write(f"[DRYRUN] Would move {r2_file} -> {dest_r2}")
         else:
-            shutil.move(r1_file, dest_r1)
-            shutil.move(r2_file, dest_r2)
+            shutil.copy(r1_file, dest_r1)
+            shutil.copy(r2_file, dest_r2)
 
         illumina_r1_name = dest_r1.name
         illumina_r2_name = dest_r2.name
