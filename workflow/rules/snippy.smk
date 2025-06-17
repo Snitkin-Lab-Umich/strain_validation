@@ -13,16 +13,18 @@ rule run_snippy:
         sample ="{sample}",
         outdir = "results/{prefix}/snippy/{sample}"
     # singularity:
-    #     "docker://staphb/snippy:4.6.0_SC2"
+    #     "docker://staphb/snippy:4.6.0"
     envmodules:
        "Bioinformatics",
        "snippy"
     shell:
-        """
+        """       
+        cleaned_ref=$(mktemp --suffix=.fasta)
+        sed 's/;.*//' {input.ref} > $cleaned_ref
         snippy --cpus {params.cpus} \
                --prefix {params.sample} \
                --outdir {params.outdir} \
-               --ref {input.ref} \
+               --ref $cleaned_ref \
                --R1 {input.r1} \
                --R2 {input.r2} \
                --force
