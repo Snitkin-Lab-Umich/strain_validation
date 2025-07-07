@@ -15,6 +15,7 @@ SHORT_READS_DIR = config["short_reads"]
 SAMPLE = list(samples_df["Sample_name"])
 
 sample_ref_genome_dict = dict(zip(samples_df["Sample_name"], samples_df["Reference_genome_path"]))
+sample_ref_genome_dict_gbk = dict(zip(samples_df["Sample_name"], samples_df["ref_genome_path_gbk"]))
 
 if not os.path.exists("results/" + PREFIX):
     os.makedirs("results/" + PREFIX, exist_ok=True)
