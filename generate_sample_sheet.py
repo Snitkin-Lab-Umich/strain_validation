@@ -18,8 +18,28 @@ plasmidsaurus_data = base_dir / "Plasmidsaurus_data"
 ont_out = base_dir / "ONT_assemblies"
 illumina_out = base_dir / "illumina_reads"
 
+# Create output directories if they don't exist
+ont_out.mkdir(parents=True, exist_ok=True)
+illumina_out.mkdir(parents=True, exist_ok=True)
+
 lookup = pd.read_csv(plasmidsaurus_data / "2025-05-20_curing_batch_1_sample_lookup.csv")
-assembly = pd.read_csv(base_dir / "MDHHS_hybrid_genome_assembly_paths.txt", sep="\t")
+
+# Load and prepare GBK assemblies
+gbk_assemblies = pd.read_csv(base_dir / "MDHHS_hybrid_gbf_paths.txt", sep="\t")
+gbk_assemblies = gbk_assemblies.rename(columns={"Assembly_path": "Assembly_path_gbk"})
+
+# Load and prepare FASTA assemblies
+fasta_assemblies = pd.read_csv(base_dir / "MDHHS_hybrid_genome_assembly_paths.txt", sep="\t")
+fasta_assemblies = fasta_assemblies.drop(columns=["Sample_ID"], errors="ignore")  # drop if exists
+fasta_assemblies = fasta_assemblies.rename(columns={"Assembly_path": "Assembly_path_fasta"})
+
+# Merge both dataframes on Illumina_genome_ID and ONT_genome_ID
+assembly = pd.merge(
+    gbk_assemblies,
+    fasta_assemblies,
+    on=["Illumina_genome_ID", "ONT_genome_ID"],
+    how="outer"
+)
 
 sample_sheet = []
 
@@ -91,18 +111,30 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
 
     matched_assembly = assembly[assembly["Illumina_genome_ID"] == ref_genome]
     if matched_assembly.empty:
+        tqdm.write(f"⚠️ No matching assembly found for reference genome {ref_genome}")
         continue
 
-    ref_genome_path = matched_assembly["Assembly_path"].values[0]
-    sample_sheet.append({
+    matched_row = matched_assembly.iloc[0]
+
+    row_data = {
         "Reference_genome": ref_genome,
-        "Reference_genome_path": ref_genome_path,
         "Sample_name": sample_name,
         "Illumina_F": illumina_r1_name,
         "Illumina_R": illumina_r2_name,
-        "ONT_assembly": ont_assembly_name
-    })
+        "ONT_assembly": ont_assembly_name,
+    }
+
+    # Add whichever paths are available
+    if pd.notna(matched_row.get("Assembly_path_gbk")):
+        row_data["ref_genome_path_gbk"] = matched_row["Assembly_path_gbk"]
+        # tqdm.write(f"✅ GBK path used for {sample_name}")
+    if pd.notna(matched_row.get("Assembly_path_fasta")):
+        row_data["ref_genome_path_fasta"] = matched_row["Assembly_path_fasta"]
+        # tqdm.write(f"✅ FASTA path used for {sample_name}")
+
+    sample_sheet.append(row_data)
 
 # ----- Save the sample sheet ----------------------------------
 if not dryrun:
-    pd.DataFrame(sample_sheet).to_csv("sample_sheet.csv", index=False)
+    df = pd.DataFrame(sample_sheet)
+    df.to_csv("sample_sheet.csv", index=False)
