@@ -5,7 +5,7 @@ rule run_snippy:
     input:
         r1=lambda wc: os.path.join(SHORT_READS_DIR, f"{wc.sample}_R1.fastq.gz"),
         r2=lambda wc: os.path.join(SHORT_READS_DIR, f"{wc.sample}_R2.fastq.gz"),
-        ref=lambda wc: sample_ref_genome_dict[wc.sample],
+        ref=lambda wc: sample_ref_genome_dict_gbk[wc.sample],
     output:
         "results/{prefix}/snippy/{sample}/{sample}.csv",
     params:
@@ -19,8 +19,8 @@ rule run_snippy:
        "snippy"
     shell:
         """       
-        cleaned_ref=$(mktemp --suffix=.fasta)
-        sed 's/;.*//' {input.ref} > $cleaned_ref
+        cleaned_ref=$(mktemp --suffix=.gbk)
+        sed -E 's/;.*circular=(true|false)([0-9]+)/ \2/' {input.ref} > $cleaned_ref
         snippy --cpus {params.cpus} \
                --prefix {params.sample} \
                --outdir {params.outdir} \
@@ -29,4 +29,3 @@ rule run_snippy:
                --R2 {input.r2} \
                --force
         """
-
