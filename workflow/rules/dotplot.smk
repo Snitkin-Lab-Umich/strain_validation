@@ -25,7 +25,8 @@ rule run_dotplot:
        "Bioinformatics",
        "mummer/4.0.0rc1",
        "R/4.4.0",
-       "python3.10-anaconda/2023.03"
+       "python3.10-anaconda/2023.03",
+       "Rtidyverse/4.4.3"
     shell:
         """
         python {input.script} \
