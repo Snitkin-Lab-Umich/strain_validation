@@ -174,7 +174,7 @@ snakemake -s workflow/Snakefile --dryrun
 #SBATCH --nodes=1 --ntasks=1 --cpus-per-task=3 --mem=10g --time=08:15:00
 
 # Load necessary modules
-module load Bioinformatics snakemake singularity R mummer/4.0.0rc1
+module load Bioinformatics snakemake singularity R mummer/4.0.0rc1 Rtidyverse/4.4.3
 
 # Run pipeline
 snakemake -s workflow/Snakefile --use-envmodules -j 999 --cluster "sbatch -A {cluster.account} -p {cluster.partition} -N {cluster.nodes}  -t {cluster.walltime} -c {cluster.procs} --mem-per-cpu {cluster.pmem} --output=slurm_out/slurm-%j.out" --cluster-config config/cluster.json --configfile config/config.yaml --latency-wait 100 --nolock
