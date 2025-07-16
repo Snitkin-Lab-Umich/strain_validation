@@ -7,13 +7,17 @@ import os
 import argparse
 
 # ------------- Set up command-line argument parser ---------------------------------------
-parser = argparse.ArgumentParser(description="Move and log files for assembly processing")
+parser = argparse.ArgumentParser(description="Move and log files before running strain validation pipeline")
 parser.add_argument('--dryrun', action='store_true', help='Simulate file operations without actually moving files')
+parser.add_argument('--lookup_file', type=str, required=True, help='Path to the sample lookup CSV file')
+parser.add_argument('--output_dir', type=str, required=True, help='Directory where the sample sheet will be saved')
+parser.add_argument('--prefix', type=str, required=True, help='Prefix for the output sample sheet filename')
+parser.add_argument('--plasmid_curing_dir', type=str, required=True, help='Path to the Plasmid_curing directory')
 args = parser.parse_args()
 dryrun = args.dryrun
 
 # ------------- Define paths ---------------------------------------------------------------
-base_dir = Path.cwd()
+base_dir = Path(args.plasmid_curing_dir).resolve()
 plasmidsaurus_data = base_dir / "Plasmidsaurus_data"
 ont_out = base_dir / "ONT_assemblies"
 illumina_out = base_dir / "illumina_reads"
@@ -22,7 +26,8 @@ illumina_out = base_dir / "illumina_reads"
 ont_out.mkdir(parents=True, exist_ok=True)
 illumina_out.mkdir(parents=True, exist_ok=True)
 
-lookup = pd.read_csv(plasmidsaurus_data / "2025-05-20_curing_batch_1_sample_lookup.csv")
+# lookup = pd.read_csv(plasmidsaurus_data / "2025-07-11_curing_batch_2_sample_lookup.csv")
+lookup = pd.read_csv(args.lookup_file)
 
 # Load and prepare GBK assemblies
 gbk_assemblies = pd.read_csv(base_dir / "MDHHS_hybrid_gbf_paths.txt", sep="\t")
@@ -52,7 +57,15 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
     illumina_batch = row['Illumina_batch']
     illumina_sub_id = row['Illumina_Submission_ID']
 
-    # -------------- 1. Move and rename ONT assembly -------------------------------------------------
+    # --------- 1. Match reference genome early ---------------------------------------
+    matched_assembly = assembly[assembly["Illumina_genome_ID"] == ref_genome]
+    if matched_assembly.empty:
+        tqdm.write(f"⚠️ No matching reference genome {ref_genome} for sample {sample_name} in batch {illumina_batch}. The illumina and corresponding long read assemblies will not be moved.")
+        continue
+
+    matched_row = matched_assembly.iloc[0]
+
+    # --------- 2. Move and rename ONT assembly ---------------------------------------
     ont_dir_pattern = f"{ont_batch}_results/{ont_batch}_*_{ont_sub_id}/ONT-only/annotation"
     ont_dirs = list(plasmidsaurus_data.glob(ont_dir_pattern))
 
@@ -77,7 +90,7 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
     else:
         tqdm.write(f"⚠️ ONT .fna file not found for {sample_name} ({ont_batch}, {ont_sub_id})")
 
-    # ------------- 2. Move and rename Illumina fastqs ----------------------------------------------------
+    # --------- 3. Move and rename Illumina fastqs ------------------------------------
     illumina_dir = plasmidsaurus_data / f"{illumina_batch}_Illumina_fastq"
     r1 = list(illumina_dir.glob(f"{illumina_batch}_*_{illumina_sub_id}_illumina_R1.fastq.gz"))
     r2 = list(illumina_dir.glob(f"{illumina_batch}_*_{illumina_sub_id}_illumina_R2.fastq.gz"))
@@ -106,15 +119,8 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
             missing.append("R2")
         tqdm.write(f"⚠️ Warning: ❓ Missing Illumina {' and '.join(missing)} fastq file(s) for sample {sample_name} in batch {illumina_batch}, submission ID {illumina_sub_id}")
 
-    # --------- 3. Match reference genome ---------------------------------------
+    # --------- 4. Save entry in sample sheet -----------------------------------------
     ont_assembly_name = f"{sample_name}.fna" if fna_files else ""
-
-    matched_assembly = assembly[assembly["Illumina_genome_ID"] == ref_genome]
-    if matched_assembly.empty:
-        tqdm.write(f"⚠️ No matching assembly found for reference genome {ref_genome}")
-        continue
-
-    matched_row = matched_assembly.iloc[0]
 
     row_data = {
         "Reference_genome": ref_genome,
@@ -124,17 +130,17 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
         "ONT_assembly": ont_assembly_name,
     }
 
-    # Add whichever paths are available
     if pd.notna(matched_row.get("Assembly_path_gbk")):
         row_data["ref_genome_path_gbk"] = matched_row["Assembly_path_gbk"]
-        # tqdm.write(f"✅ GBK path used for {sample_name}")
     if pd.notna(matched_row.get("Assembly_path_fasta")):
         row_data["ref_genome_path_fasta"] = matched_row["Assembly_path_fasta"]
-        # tqdm.write(f"✅ FASTA path used for {sample_name}")
 
     sample_sheet.append(row_data)
 
 # ----- Save the sample sheet ----------------------------------
 if not dryrun:
     df = pd.DataFrame(sample_sheet)
-    df.to_csv("sample_sheet.csv", index=False)
+    output_path = Path(args.output_dir) / f"{args.prefix}_sample_sheet.csv"
+    Path(args.output_dir).mkdir(parents=True, exist_ok=True)  
+    df.to_csv(output_path, index=False)
+    tqdm.write(f"✅ Sample sheet saved to {output_path}")
