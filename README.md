@@ -90,7 +90,7 @@ module load Bioinformatics snakemake singularity R
 
 ```
 
-Check to see if you have ggplot2 installed in your home directory 
+<!-- Check to see if you have ggplot2 installed in your home directory 
 
 > Open an R session by typing the below command on the terminal.
 
@@ -114,35 +114,40 @@ install.packages("ggplot2", repos = "https://repo.miserver.it.umich.edu/cran/")
 ```
 library(ggplot2)
 ```
-
+ 
 Quit the R session `q()` after successful installation of `ggplot2` and move onto the next section of the pipeline.  
-
+-->
 ## Setup config, sample and cluster files
 
 **_If you are just testing this pipeline, the config and sample files are already loaded with test data, so you do not need to make any additional changes to them. However, it is a good idea to change the prefix (name of your output folder) in the config file to give you an idea of what variables need to be modified when running your own samples._**
 
 ### Customize config.yaml and set tool specific parameters
-As an input, the snakemake file takes a config file where you can set the path to `sample_sheet.csv`, path to ONT long reads and illumina short reads, etc. Instructions on how to modify `config/config.yaml` is found in `config.yaml`. 
+As an input, the snakemake file takes a config file where you can set the path to a samples sheet, path to ONT long reads and illumina short reads, etc. Instructions on how to modify `config/config.yaml` is found in `config.yaml`. 
 
 ### Samples
-This sample file should contain 6 columns: `Reference_genome`, `Reference_genome_path`, `Sample_name`,  `Illumina_F`, `Illumina_R` and `ONT_assembly`. An example of how the `sample_sheet.csv` should look like can be found here `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/2025-04-16_EXAMPLE_CURING_EXP/sample_sheet.csv`. 
+This sample file should contain 7 columns: `Reference_genome`, `Sample_name`,  `Illumina_F`, `Illumina_R` and `ONT_assembly`, `ref_genome_path_gbk` and `ref_genome_path_fasta`. An example of how the sample sheet should look like can be found here `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/2025-04-16_EXAMPLE_CURING_EXP/2025-07-16_Test_sample_sheet.csv`. 
 
-To create the `sample_sheet.csv`, you need to run `generate_sample_sheet.py`.
+To create the samples file, you need to run `generate_sample_sheet.py`.
 
-Couple of assumption before you run the aforementioned python script.
-- If you run `generate_sample_sheet.py` in a `--dryrun` mode, you should be able to see which files are being moved, where it is being moved and if there are any missing sequencing data.
+Couple of assumptions before you run the aforementioned python script.
+- If you run `generate_sample_sheet.py` with all the flags including `--dryrun`, you should be able to see which files are being moved, where it is being moved and if there are any missing sequencing data.
 - You will be running `generate_sample_sheet.py` from the `Plasmid_curing` directory i.e. here `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/`
-- `sample_sheet.csv` will be created in the `Plasmid_curing` directory. 
-- `ONT_assemblies/` and `illumina_reads/` already exist here `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/`
 - `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/Plasmidsaurus_data/` contains all ONT & Illumina data (`*_results`, `*_Illumina_fastq` where `*` is **plasmidsaurus BATCH NAME**).
-- File names `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/Plasmidsaurus_data/2025-05-20_curing_batch_1_sample_lookup.csv` and `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/MDHHS_hybrid_genome_assembly_paths.txt` are not altered—otherwise, the script will break.
+- File names `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/Plasmidsaurus_data/MDHHS_hybrid_gbf_paths.txt` and `/nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/MDHHS_hybrid_genome_assembly_paths.txt` are not altered—otherwise, the script will break.
 
-Once you have read the above expectations, copy paste the command below on your terminal to create `sample_sheet.csv`. Replace `your_uniqname` with your uniqname.
+Once you have read the above expectations, copy paste the help command to view all options to create samples file.
 
 ```
-cd /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/
+python3 generate_sample_sheet.py -h
+```
 
-python3 /scratch/esnitkin_root/esnitkin1/your_uniqname/generate_sample_sheet.py
+An example of what the command would look like:
+```
+python3 generate_sample_sheet.py \
+--lookup_file /scratch/esnitkin_root/esnitkin1/dhatrib/test_pipelines/Plasmid_curing/Plasmidsaurus_data/2025-07-11_curing_batch_2_sample_lookup.csv \
+--output_dir /scratch/esnitkin_root/esnitkin1/dhatrib/test_pipelines/strain_validation/config/ \
+--prefix 2025-07-16_Test \
+--plasmid_curing_dir /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/
 ```
 
 ### Cluster file
