@@ -16,4 +16,8 @@ prefix: 2025-07-16_Test_Strain_Validation_Pipeline
 # Specify number of cores you want to use for variant calling
 cores: 13
 
+# Modify this path to the table of regions you want to highlight in the dotplots
+# Here is the link to an example table: https://github.com/Snitkin-Lab-Umich/cauris_dotplot_pipeline/blob/main/highlight_data.tsv
+table_of_regions: /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/highlight_data.tsv
+
 # Feel free to remove the comments after you have customized the file.
