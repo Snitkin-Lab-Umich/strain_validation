@@ -23,4 +23,27 @@ rule organize_results_dir:
         mv {params.cauris_repo_outdir}/{params.sample} {params.dotplot_outdir}
         """
 
+rule indel_nucmer:
+    input:
+        query_path=lambda wc: os.path.join(ASSEMBLY_DIR, f"{wc.sample}.fna"),
+        subject_path=lambda wc: sample_ref_genome_dict[wc.sample],
+        snippy_report = "results/{prefix}/final_results/{sample}.csv",
+    output:
+        ref_based_diff = "results/{prefix}/final_results/{sample}.rdiff",
+        dnadiff_summary = "results/{prefix}/final_results/{sample}.report",
+    params:
+        sample="{sample}",
+        dotplot_outdir = "results/{prefix}/dotplots",
+        final_results_outdir = "results/{prefix}/final_results",
+    envmodules:
+       "Bioinformatics",
+       "mummer/4.0.0rc1",
+    shell:
+        """
+        cd {params.dotplot_outdir}/{params.sample}/nucmer
+        dnadiff -p {params.sample} {input.subject_path} {input.query_path}
+        cd ../../../../..
+        mv {params.dotplot_outdir}/{params.sample}/nucmer/{params.sample}.rdiff {params.final_results_outdir}
+        mv {params.dotplot_outdir}/{params.sample}/nucmer/{params.sample}.report {params.final_results_outdir}
+        """
 
