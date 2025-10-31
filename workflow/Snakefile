@@ -22,7 +22,8 @@ if not os.path.exists("results/" + PREFIX):
 
 rule all:
     input:
-        expand("results/{prefix}/final_results/{sample}.csv",prefix=PREFIX, sample=SAMPLE),
+        expand("results/{prefix}/final_results/{sample}.rdiff",prefix=PREFIX, sample=SAMPLE),
+        # expand("results/{prefix}/final_results/{sample}.csv",prefix=PREFIX, sample=SAMPLE),
         # expand("results/{prefix}/snippy/{sample}/{sample}.csv", prefix=PREFIX, sample=SAMPLE),
         # expand("results/{prefix}/cauris_dotplot_repo/{sample}/plots/{sample}.pdf",prefix=PREFIX, sample=SAMPLE),
         # expand("results/{prefix}/cauris_dotplot_repo/dotplot.py", prefix=PREFIX)
