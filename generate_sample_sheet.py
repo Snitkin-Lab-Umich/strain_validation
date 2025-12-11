@@ -60,7 +60,7 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
     # --------- 1. Match reference genome early ---------------------------------------
     matched_assembly = assembly[assembly["Illumina_genome_ID"] == ref_genome]
     if matched_assembly.empty:
-        tqdm.write(f"⚠️ No matching reference genome {ref_genome} for sample {sample_name} in batch {illumina_batch}. The illumina and corresponding long read assemblies will not be moved.")
+        tqdm.write(f"No matching reference genome {ref_genome} for sample {sample_name} in batch {illumina_batch}. The illumina and corresponding long read assemblies will not be moved.")
         continue
 
     matched_row = matched_assembly.iloc[0]
@@ -74,7 +74,7 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
         fna_pattern = f"{ont_batch}_*_{ont_sub_id}.fna"
         fna_files = list(annotation_dir.glob(fna_pattern))
     else:
-        tqdm.write(f"❌ No matching directory found for: {ont_dir_pattern}")
+        tqdm.write(f"No matching directory found for: {ont_dir_pattern}")
         fna_files = []
 
     if fna_files:
@@ -86,9 +86,9 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
             else:
                 shutil.copy(fna_file, dest_path)
         else:
-            tqdm.write(f"⚠️ File already exists: {dest_path}")
+            tqdm.write(f"File already exists: {dest_path}")
     else:
-        tqdm.write(f"⚠️ ONT .fna file not found for {sample_name} ({ont_batch}, {ont_sub_id})")
+        tqdm.write(f"ONT .fna file not found for {sample_name} ({ont_batch}, {ont_sub_id})")
 
     # --------- 3. Move and rename Illumina fastqs ------------------------------------
     illumina_dir = plasmidsaurus_data / f"{illumina_batch}_Illumina_fastq"
@@ -117,7 +117,7 @@ for _, row in tqdm(lookup.iterrows(), total=lookup.shape[0], desc="📦 Processi
             missing.append("R1")
         if not r2:
             missing.append("R2")
-        tqdm.write(f"⚠️ Warning: ❓ Missing Illumina {' and '.join(missing)} fastq file(s) for sample {sample_name} in batch {illumina_batch}, submission ID {illumina_sub_id}")
+        tqdm.write(f"Warning: Missing Illumina {' and '.join(missing)} fastq file(s) for sample {sample_name} in batch {illumina_batch}, submission ID {illumina_sub_id}")
 
     # --------- 4. Save entry in sample sheet -----------------------------------------
     ont_assembly_name = f"{sample_name}.fna" if fna_files else ""
@@ -143,4 +143,4 @@ if not dryrun:
     output_path = Path(args.output_dir) / f"{args.prefix}_sample_sheet.csv"
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)  
     df.to_csv(output_path, index=False)
-    tqdm.write(f"✅ Sample sheet saved to {output_path}")
+    tqdm.write(f"Sample sheet saved to {output_path}")
