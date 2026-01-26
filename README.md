@@ -1,6 +1,8 @@
 # Strain validation
 Snakemake pipeline to validate mutants made in the lab
 
+To identify missing or extra contigs in cured isolates, see [compare illumina cured assemblies with parent assemblies](compare_hybrid_illumina_assemblies.md)
+
 ## Summary
 This pipeline performs two  steps:
 - Firstly, it creates synteny dot plots using long reads based on an in house pipeline [cauris_dotplot](https://github.com/Snitkin-Lab-Umich/cauris_dotplot_pipeline) 
