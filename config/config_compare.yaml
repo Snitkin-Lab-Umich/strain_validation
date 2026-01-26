@@ -1,0 +1,49 @@
+# Configuration settings for Snakemake
+
+# Relative path where your samples are found
+samples: /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/2025-04-16_EXAMPLE_CURING_EXP/2025-07-16_Test_sample_sheet.csv
+
+# Path to your raw sequencing reads  
+short_reads: /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/illumina_reads
+
+# Path to long read assemblies
+assembly: /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/ONT_assemblies 
+
+# Directory prefix where the outputs will be saved to
+# Rename this to your preferred naming convention with this format:year-month-day_Project_Name_QCD
+prefix: 2026-01-21_compare_illum_hyb
+
+# Specify number of cores you want to use for variant calling
+cores: 13
+
+# Modify this path to the table of regions you want to highlight in the dotplots
+# Here is the link to an example table: https://github.com/Snitkin-Lab-Umich/cauris_dotplot_pipeline/blob/main/highlight_data.tsv
+table_of_regions: /nfs/turbo/umms-esnitkin/Project_MIDGE_Bac/Analysis/Plasmid_curing/highlight_data.tsv
+
+# Command line parameters for trimmomatic tool
+# Change according to your sequence type
+# If your adapter file is not present in the adapter directory, 
+# Please add the appropriate file to the adapters folder
+adapter_file: config/adapters/combined_Adaptors.fa
+seed_mismatches: 2
+palindrome_clipthreshold: 30
+simple_clipthreshold: 10
+minadapterlength: 8
+keep_both_reads: true
+window_size: 4
+window_size_quality: 20
+minlength: 40
+headcrop_length: 0
+
+# Cores used for trimmomatic
+# Optional to change this
+ncores: 6
+
+# Change to genome size of your organism of interest 
+genome_size: 5500000
+
+# Do not change this
+bioawk: bioawk -c fastx '{if(length($seq) > 1000) {print ">"$name; print $seq }}'
+
+
+# Feel free to remove the comments after you have customized the file.
