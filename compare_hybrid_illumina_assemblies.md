@@ -115,11 +115,11 @@ Change the walltime according to the number of samples you have in `config/clust
 
 ```
 
-snakemake -s workflow/Snakefile --dryrun
+snakemake -s workflow/compare_hyb_illum_assem.smk --dryrun
 
 ```
 
-> Submit the pipeline as a batch job. Change these SBATCH commands: `--job-name` to a more descriptive name like `run_strainval`, `--mail-user` to your email address, `--time` depending on the number of samples you have (should be more than what you specified in `config/cluster.json`). Feel free to make changes to the other flags if you are comfortable doing so. The sbat script can be found in the current directory—it's called `StrainValidation.sbat`. Don't forget to submit the script to Slurm! `sbatch StrainValidation.sbat`.
+> Submit the pipeline as a batch job. Change these SBATCH commands: `--job-name` to a more descriptive name like `run_strainval`, `--mail-user` to your email address, `--time` depending on the number of samples you have (should be more than what you specified in `config/cluster.json`). Feel free to make changes to the other flags if you are comfortable doing so. The sbat script can be found in the current directory—it's called `StrainValidation_compare.sbat`. Don't forget to submit the script to Slurm! `sbatch StrainValidation_compare.sbat`.
 
 ```
 #!/bin/bash
