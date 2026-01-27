@@ -21,7 +21,7 @@ rule run_dotplot:
         "results/{prefix}/cauris_dotplot_repo/{sample}/plots/{sample}.pdf"
     params:
         sample="{sample}",
-        table_of_regions=config["table_of_regions"]
+        #table_of_regions=config["table_of_regions"]
     envmodules:
        "Bioinformatics",
        "mummer/4.0.0rc1",
@@ -33,8 +33,7 @@ rule run_dotplot:
         python {input.script} \
             --name {params.sample} \
             --query {input.query_path} \
-            --subject {input.subject_path} \
-            --highlight {params.table_of_regions} 
+            --subject {input.subject_path} 
         """
 
 
