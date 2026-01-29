@@ -136,7 +136,7 @@ snakemake -s workflow/compare_hyb_illum_assem.smk --dryrun
 module load Bioinformatics snakemake singularity R mummer/4.0.0rc1 Rtidyverse/4.4.3
 
 # Run pipeline
-snakemake -s workflow/compare_hyb_illum_assem.smk --use-envmodules -j 999 --cluster "sbatch -A {cluster.account} -p {cluster.partition} -N {cluster.nodes}  -t {cluster.walltime} -c {cluster.procs} --mem-per-cpu {cluster.pmem} --output=slurm_out/slurm-%j.out" --cluster-config config/cluster.json --configfile config/config.yaml --latency-wait 100 --nolock
+snakemake -s workflow/compare_hyb_illum_assem.smk --use-conda --use-singularity --use-envmodules -j 999 --cluster "sbatch -A {cluster.account} -p {cluster.partition} -N {cluster.nodes}  -t {cluster.walltime} -c {cluster.procs} --mem-per-cpu {cluster.pmem} --output=slurm_out/slurm-%j.out" --cluster-config config/cluster.json --configfile config/config.yaml --latency-wait 1000 --nolock
 ```
 
 ### Near Essential
