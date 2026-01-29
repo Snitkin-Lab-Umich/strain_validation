@@ -1,5 +1,3 @@
-# The pipeline format is the same as before
-
 # Strain validation
 Snakemake pipeline to find the additional or missing scaffols present in the cured isolates
 
